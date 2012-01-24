@@ -10,6 +10,7 @@ gem("ruby-redis")
 gem("rack", "~> 1.3.4")
 gem("async_sinatra")
 gem("thin")
+gem("chronic")
 
 group :development do
   gem("rake")

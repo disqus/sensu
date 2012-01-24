@@ -13,6 +13,7 @@ require 'hashie'
 require 'amqp'
 require 'cabin'
 require 'cabin/outputs/em/stdlib-logger'
+require 'chronic'
 
 if ENV['RBTRACE']
   require 'rbtrace'

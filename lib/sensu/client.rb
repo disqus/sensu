@@ -167,7 +167,7 @@ module Sensu
             interval = options[:test] ? 0.5 : details.interval
             @timers << EM::PeriodicTimer.new(interval) do
               check.issued = Time.now.to_i
-              execute_check(check)
+              schedule_check(check)
             end
           end
         end
@@ -180,6 +180,23 @@ module Sensu
         socket.settings = @settings
         socket.logger = @logger
         socket.amq = @amq
+      end
+    end
+
+    def schedule_check(check)
+      if check.schedule
+        schedule_from = Chronic.parse(check.schedule.start)
+        schedule_until = Chronic.parse(check.schedule.end)
+
+        if Time.now.between?(schedule_from, schedule_until)
+          @logger.info('[schedule] -- scheduling check -- ' + check.name)
+          execute_check(check)
+        else
+          @logger.info('[schedule] -- not scheduling check -- ' + check.name)
+        end
+      else
+        @logger.info('[schedule] -- scheduling check -- ' + check.name)
+        execute_check(check)
       end
     end
 

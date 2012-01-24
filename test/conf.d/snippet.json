@@ -12,7 +12,11 @@
         "b"
       ],
       "interval": 1,
-      "auto_resolve": false
+      "auto_resolve": false,
+      "schedule": {
+        "start": "5 minutes ago",
+        "end": "5 minutes from now"
+      }
     }
   }
 }
