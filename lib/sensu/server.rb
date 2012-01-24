@@ -223,6 +223,25 @@ module Sensu
       end
     end
 
+    def should_schedule?(details)
+      schedule = true
+      if details.schedule
+        schedule = false # not in schedule by default
+        if details.schedule.start && details.schedule.end
+          schedule_start = Chronic.parse(details.schedule.start)
+          schedule_end = Chronic.parse(details.schedule.end)
+          begin
+            schedule = Time.now.between?(schedule_start, schedule_end)
+          rescue ArgumentError
+            # if one of the values is bad, just assume it
+            # should be scheduled
+            schedule = true
+          end
+        end
+      end
+      return schedule
+    end
+
     def setup_results
       @logger.debug('[result] -- setup results')
       @result_queue = @amq.queue('results')
@@ -243,9 +262,13 @@ module Sensu
             details.subscribers.each do |exchange|
               interval = options[:test] ? 0.5 : details.interval
               @timers << EM::PeriodicTimer.new(interval) do
-                @logger.info('[publisher] -- publishing check request -- ' + name + ' -- ' + exchange)
-                check_request.issued = Time.now.to_i
-                @amq.fanout(exchange).publish(check_request.to_json)
+                if should_schedule?(details)
+                  @logger.info('[publisher] -- publishing check request -- ' + name + ' -- ' + exchange)
+                  check_request.issued = Time.now.to_i
+                  @amq.fanout(exchange).publish(check_request.to_json)
+                else
+                  @logger.info('[publisher] -- not publishing check request (not scheduled) -- ' + name + ' -- ' + exchange)
+                end
               end
             end
           end

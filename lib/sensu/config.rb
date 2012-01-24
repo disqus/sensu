@@ -85,6 +85,14 @@ module Sensu
             invalid_config('handlers must be an array for check ' + name)
           end
         end
+        if details.key?('schedule')
+          unless details.schedule.key?('start') && details.schedule.key?('end')
+            invalid_config('missing schedule start and/or end for check ' + name)
+          end
+          unless details.schedule.start.is_a?(String) && details.schedule.end.is_a?(String)
+            invalid_config('schedule start and end must be strings for check ' + name)
+          end
+        end
       end
     end
 

@@ -128,6 +128,26 @@ module Sensu
       end
     end
 
+
+    def should_schedule?(details)
+      schedule = true
+      if details.schedule
+        schedule = false # not in schedule by default
+        if details.schedule.start && details.schedule.end
+          schedule_start = Chronic.parse(details.schedule.start)
+          schedule_end = Chronic.parse(details.schedule.end)
+          begin
+            schedule = Time.now.between?(schedule_start, schedule_end)
+          rescue ArgumentError
+            # if one of the values is bad, just assume it
+            # should be scheduled
+            schedule = true
+          end
+        end
+      end
+      return schedule
+    end
+
     def setup_subscriptions
       @logger.debug('[subscribe] -- setup subscriptions')
       @check_request_queue = @amq.queue(String.unique, :exclusive => true)
@@ -166,8 +186,13 @@ module Sensu
           @timers << EM::Timer.new(stagger*standalone_check_count) do
             interval = options[:test] ? 0.5 : details.interval
             @timers << EM::PeriodicTimer.new(interval) do
-              check.issued = Time.now.to_i
-              schedule_check(check)
+              if should_schedule?(details)
+                @logger.info('[schedule] -- scheduling check -- ' + check.name)
+                check.issued = Time.now.to_i
+                execute_check(check)
+              else
+                @logger.info('[schedule] -- not scheduling check -- ' + check.name)
+              end
             end
           end
         end
@@ -180,23 +205,6 @@ module Sensu
         socket.settings = @settings
         socket.logger = @logger
         socket.amq = @amq
-      end
-    end
-
-    def schedule_check(check)
-      if check.schedule
-        schedule_from = Chronic.parse(check.schedule.start)
-        schedule_until = Chronic.parse(check.schedule.end)
-
-        if Time.now.between?(schedule_from, schedule_until)
-          @logger.info('[schedule] -- scheduling check -- ' + check.name)
-          execute_check(check)
-        else
-          @logger.info('[schedule] -- not scheduling check -- ' + check.name)
-        end
-      else
-        @logger.info('[schedule] -- scheduling check -- ' + check.name)
-        execute_check(check)
       end
     end
 
