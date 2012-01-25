@@ -228,14 +228,18 @@ module Sensu
       if details.schedule
         schedule = false # not in schedule by default
         if details.schedule.start && details.schedule.end
-          schedule_start = Chronic.parse(details.schedule.start)
-          schedule_end = Chronic.parse(details.schedule.end)
-          begin
-            schedule = Time.now.between?(schedule_start, schedule_end)
-          rescue ArgumentError
-            # if one of the values is bad, just assume it
-            # should be scheduled
-            schedule = true
+          minutes = Time.now.hour*60+Time.now.min
+
+          (hour, minute) = details.schedule.start.split(':')
+          start = hour.to_i*60+minute.to_i
+
+          (hour, minute) = details.schedule.end.split(':')
+          finish = hour.to_i*60+minute.to_i
+
+          if start > finish && (minutes > start || minutes < finish)
+            return true
+          elsif (start >= 0) && (minutes >= start) && (minutes < finish)
+            return true
           end
         end
       end

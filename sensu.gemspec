@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
   s.add_dependency("rack", "~> 1.3.4")
   s.add_dependency("async_sinatra")
   s.add_dependency("thin")
-  s.add_dependency("chronic")
 
   s.add_development_dependency("rake")
   s.add_development_dependency("em-spec")

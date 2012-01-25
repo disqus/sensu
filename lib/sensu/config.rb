@@ -13,7 +13,6 @@ require 'hashie'
 require 'amqp'
 require 'cabin'
 require 'cabin/outputs/em/stdlib-logger'
-require 'chronic'
 
 if ENV['RBTRACE']
   require 'rbtrace'
@@ -91,6 +90,14 @@ module Sensu
           end
           unless details.schedule.start.is_a?(String) && details.schedule.end.is_a?(String)
             invalid_config('schedule start and end must be strings for check ' + name)
+          end
+          (hour, minute) = details.schedule.start.split(':')
+          unless hour < 24 && minute < 60
+            invalid_config('schedule start time not a valid time (HH:MM) for check ' + name)
+          end
+          (hour, minute) = details.schedule.end.split(':')
+          unless hour < 24 && minute < 60
+            invalid_config('schedule end time not a valid time (HH:MM) for check ' + name)
           end
         end
       end
