@@ -22,8 +22,8 @@ class TestSensu < TestCase
     assert(settings.checks.b.subscribers == ['a', 'b'])
     assert(settings.checks.b.interval == 1)
     assert(settings.checks.b.auto_resolve == false)
-    assert(settings.checks.b.schedule.start == "5 minutes ago")
-    assert(settings.checks.b.schedule.end == "5 minutes from now")
+    assert(settings.checks.b.schedule.start == "00:01")
+    assert(settings.checks.b.schedule.end == "23:59")
     done
   end
 

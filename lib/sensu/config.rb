@@ -92,11 +92,11 @@ module Sensu
             invalid_config('schedule start and end must be strings for check ' + name)
           end
           (hour, minute) = details.schedule.start.split(':')
-          unless hour < 24 && minute < 60
+          unless hour.to_i < 24 && minute.to_i < 60
             invalid_config('schedule start time not a valid time (HH:MM) for check ' + name)
           end
           (hour, minute) = details.schedule.end.split(':')
-          unless hour < 24 && minute < 60
+          unless hour.to_i < 24 && minute.to_i < 60
             invalid_config('schedule end time not a valid time (HH:MM) for check ' + name)
           end
         end
